@@ -1,0 +1,40 @@
+name: verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: verify.sh
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build and smoke verilog
+        run: |
+          docker build -t zesun33/verilog -f docker/verilog/Dockerfile .
+          docker run --rm zesun33/verilog bash -c "iverilog -V && verilator --version"
+
+      - name: Build and smoke spice
+        run: |
+          docker build -t zesun33/spice -f docker/spice/Dockerfile .
+          docker run --rm zesun33/spice bash -c "ngspice -v"
+
+      - name: Build and smoke fpga
+        run: |
+          docker build -t zesun33/fpga -f docker/fpga/Dockerfile .
+          docker run --rm zesun33/fpga bash -c "yosys -V"
+
+      - name: Build and smoke asic
+        run: |
+          docker build -t zesun33/asic -f docker/asic/Dockerfile .
+          docker run --rm zesun33/asic bash -c "yosys -V"
