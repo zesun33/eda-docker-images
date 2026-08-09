@@ -5,33 +5,59 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT_DIR"
 
+detect_runtime() {
+    if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
+        echo docker
+        return 0
+    fi
+
+    if command -v podman >/dev/null 2>&1; then
+        echo podman
+        return 0
+    fi
+
+    return 1
+}
+
+runtime_build_args() {
+    local runtime="$1"
+    if [ "$runtime" = "podman" ]; then
+        printf '%s' '--storage-opt overlay.ignore_chown_errors=true'
+    fi
+}
+
 color() { printf "\033[1;36m%s\033[0m\n" "$*"; }
 ok()    { printf "  \033[1;32m✓\033[0m %s\n" "$*"; }
 fail()  { printf "  \033[1;31m✗\033[0m %s\n" "$*"; exit 1; }
 
 run_smoke() {
-    local name="$1"
-    local script="$2"
+    local runtime="$1"
+    local name="$2"
+    local build_args
+    build_args="$(runtime_build_args "$runtime")"
 
-    if docker info >/dev/null 2>&1; then
-        color "Building $name..."
-        docker build -t "zesun33/$name" -f "docker/$name/Dockerfile" . || fail "build $name"
-        color "Running smoke for $name..."
-        docker run --rm "zesun33/$name" bash "/opt/fixtures/smoke.sh" 2>/dev/null || {
-            # Run inline smoke if container smoke is not available
-            bash "scripts/smoke-$name.sh" 2>/dev/null || true
-        }
-        ok "$name verified"
-    else
-        color "Docker not available. Checking scripts locally..."
-        [ -f "scripts/smoke-$name.sh" ] || fail "missing smoke script for $name"
-        ok "$name smoke script exists"
-    fi
+    color "Building $name with $runtime..."
+    # shellcheck disable=SC2086
+    "$runtime" build $build_args -t "zesun33/$name" -f "docker/$name/Dockerfile" . || fail "build $name"
+
+    color "Running smoke for $name in $runtime..."
+    "$runtime" run --rm -v "$ROOT_DIR:/repo:Z" -w /repo "zesun33/$name" bash "scripts/smoke-$name.sh" || fail "smoke $name"
+
+    ok "$name verified"
 }
 
-run_smoke "verilog" "scripts/smoke-verilog.sh"
-run_smoke "spice" "scripts/smoke-spice.sh"
-run_smoke "fpga" "scripts/smoke-fpga.sh"
-run_smoke "asic" "scripts/smoke-asic.sh"
+if runtime="$(detect_runtime)"; then
+    color "Using container runtime: $runtime"
+    run_smoke "$runtime" "verilog"
+    run_smoke "$runtime" "spice"
+    run_smoke "$runtime" "fpga"
+    run_smoke "$runtime" "asic"
+else
+    color "No container runtime available. Checking scripts locally..."
+    for name in verilog spice fpga asic; do
+        [ -f "scripts/smoke-$name.sh" ] || fail "missing smoke script for $name"
+        ok "$name smoke script exists"
+    done
+fi
 
 color "All images verified."

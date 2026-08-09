@@ -1,4 +1,6 @@
 SHELL := /usr/bin/env bash
+CONTAINER_RUNTIME ?= $(shell if command -v docker >/dev/null 2>&1; then echo docker; elif command -v podman >/dev/null 2>&1; then echo podman; else echo docker; fi)
+CONTAINER_BUILD_ARGS ?= $(shell if [ "$(CONTAINER_RUNTIME)" = "podman" ]; then echo --storage-opt overlay.ignore_chown_errors=true; fi)
 
 .PHONY: all build-verilog build-spice build-fpga build-asic \
         smoke-verilog smoke-spice smoke-fpga smoke-asic verify clean
@@ -6,31 +8,31 @@ SHELL := /usr/bin/env bash
 all: build-verilog build-spice build-fpga build-asic
 
 build-verilog:
-	docker build -t zesun33/verilog -f docker/verilog/Dockerfile .
+	$(CONTAINER_RUNTIME) build $(CONTAINER_BUILD_ARGS) -t zesun33/verilog -f docker/verilog/Dockerfile .
 
 build-spice:
-	docker build -t zesun33/spice -f docker/spice/Dockerfile .
+	$(CONTAINER_RUNTIME) build $(CONTAINER_BUILD_ARGS) -t zesun33/spice -f docker/spice/Dockerfile .
 
 build-fpga:
-	docker build -t zesun33/fpga -f docker/fpga/Dockerfile .
+	$(CONTAINER_RUNTIME) build $(CONTAINER_BUILD_ARGS) -t zesun33/fpga -f docker/fpga/Dockerfile .
 
 build-asic:
-	docker build -t zesun33/asic -f docker/asic/Dockerfile .
+	$(CONTAINER_RUNTIME) build $(CONTAINER_BUILD_ARGS) -t zesun33/asic -f docker/asic/Dockerfile .
 
 smoke-verilog:
-	bash scripts/smoke-verilog.sh
+	$(CONTAINER_RUNTIME) run --rm -v "$(CURDIR):/repo:Z" -w /repo zesun33/verilog bash scripts/smoke-verilog.sh
 
 smoke-spice:
-	bash scripts/smoke-spice.sh
+	$(CONTAINER_RUNTIME) run --rm -v "$(CURDIR):/repo:Z" -w /repo zesun33/spice bash scripts/smoke-spice.sh
 
 smoke-fpga:
-	bash scripts/smoke-fpga.sh
+	$(CONTAINER_RUNTIME) run --rm -v "$(CURDIR):/repo:Z" -w /repo zesun33/fpga bash scripts/smoke-fpga.sh
 
 smoke-asic:
-	bash scripts/smoke-asic.sh
+	$(CONTAINER_RUNTIME) run --rm -v "$(CURDIR):/repo:Z" -w /repo zesun33/asic bash scripts/smoke-asic.sh
 
 verify:
 	bash scripts/verify.sh
 
 clean:
-	docker rmi zesun33/verilog zesun33/spice zesun33/fpga zesun33/asic 2>/dev/null || true
+	$(CONTAINER_RUNTIME) rmi zesun33/verilog zesun33/spice zesun33/fpga zesun33/asic 2>/dev/null || true

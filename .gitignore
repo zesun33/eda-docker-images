@@ -11,3 +11,7 @@ Thumbs.db
 # Docker
 *.tar
 *.tar.gz
+
+# Generated smoke artifacts
+fixtures/verilog/counter_sim
+fixtures/fpga/blinky.json

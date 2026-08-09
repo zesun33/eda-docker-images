@@ -22,10 +22,10 @@ module counter_tb;
 
     initial begin
         #100;
-        if (count == 4'b1010) begin
+        if (count == 4'b1000) begin
             $display("PASS: count reached expected value");
         end else begin
-            $display("FAIL: count = %b (expected 1010)", count);
+            $display("FAIL: count = %b (expected 1000)", count);
         end
         $finish;
     end
