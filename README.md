@@ -13,6 +13,36 @@ The repo supports either `docker` or `podman`. If Docker is unavailable, the loc
 | `zesun33/fpga` | ubuntu:24.04 | yosys **0.38**, icestorm, nextpnr-ice40/ecp5, prjoxide, opensta 2.5.0, openroad 2.0, verible, sv2v, svlint, cocotb 2.0.1 | local | local |
 | `zesun33/asic` | ubuntu:24.04 | yosys **0.38**, opensta 2.5.0, openroad 2.0, verible, sv2v, svlint, cocotb 2.0.1 | local | local |
 
+---
+
+## ⚡ Quick Tour: The End of EDA Toolchain Hell
+
+### Traditional Host Installs vs. `eda-docker-images`
+| Host EDA Toolchains | `eda-docker-images` |
+| :--- | :--- |
+| 4+ hours building Yosys, OpenROAD, and Verilator from C++ source | **Instant launch** via pre-compiled, pinned Ubuntu 24.04 images |
+| Requires root / `sudo` privileges (blocked on shared HPC/lab machines) | **100% rootless Podman** with single-user namespace support |
+| Conflicting LLVM/boost library versions break host OS packages | **Full containment** — zero host pollution |
+| Hard to reproduce across team members / CI runners | **Deterministic hash** — identical tools on every workstation |
+
+### Run Any EDA Flow in 1 Command (Zero Host Install)
+
+```bash
+# 1. Simulate Verilog with iverilog + vvp:
+podman run --rm -v "$PWD:/repo:Z" -w /repo zesun33/verilog \
+  bash -c "iverilog -o sim.vvp counter.v counter_tb.v && vvp sim.vvp"
+
+# 2. Synthesize RTL to iCE40 FPGA bitstream with Yosys:
+podman run --rm -v "$PWD:/repo:Z" -w /repo zesun33/fpga \
+  yosys -p "synth_ice40 -top top -json top.json" top.v
+
+# 3. Simulate an analog RC filter with NGSpice:
+podman run --rm -v "$PWD:/repo:Z" -w /repo zesun33/spice \
+  ngspice -b -r filter.raw filter.cir
+```
+
+---
+
 ## Quickstart
 
 ```bash
