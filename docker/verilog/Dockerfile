@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     verilator \
     make \
     python3 \
+    libpython3.12 \
     python3-pip \
     python3-venv \
     nodejs \
