@@ -41,6 +41,8 @@ RUN curl -sL https://github.com/conda-forge/miniforge/releases/latest/download/M
     rm /tmp/miniforge.sh && \
     /opt/conda/bin/conda create -yn openroad-env -c litex-hub -c conda-forge -c defaults \
         python=3.10 openroad yosys verible fmt=8.1.1 && \
+    /opt/conda/bin/conda create -yn magic-env -c conda-forge magic=8.3.486 && \
+    ln -sf /opt/conda/envs/magic-env/bin/magic /opt/conda/bin/magic 2>/dev/null; \
     for bin in sta openroad yosys yosys-abc yosys-smtbmc yosys-witness verible-verilog-lint verible-verilog-format; do \
         ln -sf /opt/conda/envs/openroad-env/bin/$bin /opt/conda/bin/$bin 2>/dev/null; \
     done && \
