@@ -17,9 +17,8 @@ make push-ghcr
 podman pull ghcr.io/zesun33/verilog:latest
 ```
 
-Fresh packages push as **private**; flip each to public under
-`github.com/users/zesun33/packages` so pulls and devcontainers work
-anonymously. Devcontainers default to local builds (`BASE=localhost/...`);
+Packages from this public repo are **public on GHCR** (anonymous `podman pull`
+works). Devcontainers default to local builds (`BASE=localhost/...`);
 point them at GHCR with `--build-arg BASE=ghcr.io/zesun33/verilog`.
 
 ## PDK cache (host-side, not baked into images)
@@ -29,7 +28,7 @@ Fetch once on the host and mount read-only where servers expect it:
 
 ```bash
 mkdir -p /data/pdks
-podman run --rm -v /data/pdks:/pdk:Z localhost/zesun33/asic:latest \
+podman run --rm -v /data/pdks:/pdk:Z ghcr.io/zesun33/asic:latest \
   volare fetch --pdk sky130 --pdk-root /pdk -l sky130_fd_sc_hd <sha>
 export MCP_GDS_PDK_ROOT=/data/pdks/volare/sky130/versions/<sha>
 ```

@@ -11,3 +11,7 @@
 - `docker/asic/Dockerfile` with yosys and opensta.
 - Smoke scripts and fixtures for all four images.
 - GitHub Actions verify workflow.
+
+### Changed
+
+- Public image source is GitHub Container Registry (`ghcr.io/zesun33/{verilog,asic,fpga,spice}`), anonymous pull. README is GHCR-first.
