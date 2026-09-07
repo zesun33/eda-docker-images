@@ -22,6 +22,21 @@ Fresh packages push as **private**; flip each to public under
 anonymously. Devcontainers default to local builds (`BASE=localhost/...`);
 point them at GHCR with `--build-arg BASE=ghcr.io/zesun33/verilog`.
 
+## PDK cache (host-side, not baked into images)
+
+Foundry PDKs stay out of the images (gigabytes, licensed per download).
+Fetch once on the host and mount read-only where servers expect it:
+
+```bash
+mkdir -p /data/pdks
+podman run --rm -v /data/pdks:/pdk:Z localhost/zesun33/asic:latest \
+  volare fetch --pdk sky130 --pdk-root /pdk -l sky130_fd_sc_hd <sha>
+export MCP_GDS_PDK_ROOT=/data/pdks/volare/sky130/versions/<sha>
+```
+
+`mcp-gds` mounts it at `/pdk` for Netgen setups, Magic tech, and KLayout
+decks (see its README). Record the pinned SHA in run docs for determinism.
+
 | Image | Base | Tools (measured locally) | Build | Smoke |
 |---|---|---|---|---|
 | `zesun33/verilog` | ubuntu:24.04 | iverilog 12.0, verilator 5.020, verible, sv2v, svlint, cocotb 2.0.1, python3, make, node | local | local |
