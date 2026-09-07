@@ -13,11 +13,19 @@ COPY docker/verilog/versions.env /opt/versions.env
 # sandbox user because no subordinate UID/GID ranges are configured.
 RUN echo 'APT::Sandbox::User "root";' > /etc/apt/apt.conf.d/99rootless-no-sandbox
 
-# Install system packages (build-essential for Verilator --binary/coverage C++ builds)
+# Install system packages. Do not apt-install verilator: Ubuntu 24.04 ships
+# 5.020, which is below cocotb 2.x's 5.036 floor. Build from source below.
+# keep g++ (build-essential) for Verilator --binary / --coverage C++ builds.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     iverilog \
-    verilator \
     build-essential \
+    autoconf \
+    flex \
+    bison \
+    help2man \
+    libfl2 \
+    libfl-dev \
+    zlib1g-dev \
     make \
     python3 \
     libpython3.12 \
@@ -28,10 +36,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
     unzip \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python packages
 RUN pip3 install --break-system-packages cocotb
+
+# Verilator from source (pin VERILATOR_VERSION in versions.env)
+RUN set -eux; \
+    . /opt/versions.env; \
+    curl -fsSL "https://github.com/verilator/verilator/archive/refs/tags/v${VERILATOR_VERSION}.tar.gz" \
+      | tar xz -C /tmp; \
+    cd /tmp/verilator-"${VERILATOR_VERSION}"; \
+    autoconf; \
+    ./configure --prefix=/usr/local; \
+    make -j"$(nproc)"; \
+    make install; \
+    cd /; \
+    rm -rf /tmp/verilator-"${VERILATOR_VERSION}"; \
+    verilator --version
 
 # Install verible (Verilog linter/formatter)
 RUN curl -sL https://github.com/chipsalliance/verible/releases/download/v0.0-4080-ga0a8d8eb/verible-v0.0-4080-ga0a8d8eb-linux-static-x86_64.tar.gz | \

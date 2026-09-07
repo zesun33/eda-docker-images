@@ -127,9 +127,27 @@ RUN printf '#!/bin/sh\nexec /usr/bin/python3 "$@"\n' > /usr/local/bin/python3 &&
 
 ENV PATH="/usr/local/bin:/opt/conda/bin:$PATH"
 
+# openFPGALoader: ECP5 / multi-vendor flashing (iceprog covers iCE40 only).
+ENV OPENFPGALOADER_VERSION=0.12.1
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        pkg-config libhidapi-dev libhidapi-hidraw0 zlib1g-dev \
+    || true; \
+    dpkg --force-all --configure -a 2>/dev/null || true; \
+    rm -rf /var/lib/apt/lists/* && \
+    curl -fsSL "https://github.com/trabucayre/openFPGALoader/archive/refs/tags/v${OPENFPGALOADER_VERSION}.tar.gz" \
+      | tar xz -C /tmp && \
+    cmake -S /tmp/openFPGALoader-${OPENFPGALOADER_VERSION} -B /tmp/ofl-build \
+      -DCMAKE_INSTALL_PREFIX=/usr/local -DCMAKE_BUILD_TYPE=Release && \
+    cmake --build /tmp/ofl-build -j"$(nproc)" && \
+    cmake --install /tmp/ofl-build && \
+    rm -rf /tmp/openFPGALoader-${OPENFPGALOADER_VERSION} /tmp/ofl-build && \
+    openFPGALoader --help >/dev/null
+
 RUN yosys -V && sta -version && nextpnr-ecp5 --version && ecppack --help 2>&1 | head -1 && openroad -version && \
     verible-verilog-lint --version && sv2v --version && svlint --version && \
-    python3 -c "import cocotb; print(cocotb.__version__)"
+    python3 -c "import cocotb; print(cocotb.__version__)" && \
+    openFPGALoader --help >/dev/null
 
 COPY fixtures/fpga/ /opt/fixtures/fpga/
 

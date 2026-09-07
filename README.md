@@ -38,9 +38,9 @@ decks (see its README). Record the pinned SHA in run docs for determinism.
 
 | Image | Base | Tools (measured locally) | Build | Smoke |
 |---|---|---|---|---|
-| `zesun33/verilog` | ubuntu:24.04 | iverilog 12.0, verilator 5.020, verible, sv2v, svlint, cocotb 2.0.1, python3, make, node | local | local |
+| `zesun33/verilog` | ubuntu:24.04 | iverilog 12.0, verilator **5.050**, verible, sv2v, svlint, cocotb 2.0.1, python3, make, node | local | local |
 | `zesun33/spice` | ubuntu:24.04 | ngspice 42, cocotb 2.0.1, python3 | local | local |
-| `zesun33/fpga` | ubuntu:24.04 | yosys **0.38**, icestorm, nextpnr-ice40/ecp5, prjoxide, opensta 2.5.0, openroad 2.0, verible, sv2v, svlint, cocotb 2.0.1 | local | local |
+| `zesun33/fpga` | ubuntu:24.04 | yosys **0.38**, icestorm, nextpnr-ice40/ecp5, prjoxide, openFPGALoader, opensta 2.5.0, openroad 2.0, verible, sv2v, svlint, cocotb 2.0.1 | local | local |
 | `zesun33/asic` | ubuntu:24.04 | yosys **0.38**, opensta 2.5.0, openroad 2.0, verible, sv2v, svlint, cocotb 2.0.1 | local | local |
 
 ---
@@ -93,7 +93,7 @@ make smoke-verilog
 
 ### verilog
 - `iverilog 12.0` — compile and simulate Verilog
-- `verilator 5.020` — lint-only and cycle-accurate simulation
+- `verilator 5.050` — lint, `--binary`, coverage, and cocotb `SIM=verilator` (built from source; Ubuntu apt is 5.020)
 - `verible 0.0-4080` — Verilog/SystemVerilog linter and formatter
 - `sv2v 0.0.13` — SystemVerilog to Verilog converter
 - `svlint 0.9.5` — SystemVerilog linting rules
@@ -113,6 +113,7 @@ Note: GUI tooling like `gtkwave` is intentionally omitted in this rootless/headl
 - `nextpnr-ice40` — iCE40 place and route (source build)
 - `nextpnr-ecp5` — ECP5 place and route (conda litex-hub)
 - `prjoxide` — Lattice Nexus bitstream tools + chipdb (Rust build)
+- `openFPGALoader 0.12.1` — ECP5 / multi-vendor flashing
 - `opensta 2.5.0` — static timing analysis
 - `openroad 2.0` — P&R and physical design
 - `verible, sv2v, svlint` — RTL linting/format/conversion

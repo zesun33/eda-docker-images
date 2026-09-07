@@ -23,6 +23,10 @@ echo "yosys: OK"
 command -v icepack >/dev/null || { echo "FAIL: icepack not found"; exit 1; }
 echo "icepack: OK"
 
+command -v openFPGALoader >/dev/null || { echo "FAIL: openFPGALoader not found"; exit 1; }
+openFPGALoader --help >/dev/null || { echo "FAIL: openFPGALoader --help"; exit 1; }
+echo "openFPGALoader: OK"
+
 command -v openroad >/dev/null || { echo "FAIL: openroad not found"; exit 1; }
 openroad -version 2>&1 | head -1 || true
 echo "openroad: OK"

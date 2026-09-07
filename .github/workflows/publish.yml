@@ -37,7 +37,7 @@ jobs:
         include:
           - image: verilog
             dockerfile: docker/verilog/Dockerfile
-            timeout: 30
+            timeout: 90
           - image: spice
             dockerfile: docker/spice/Dockerfile
             timeout: 30

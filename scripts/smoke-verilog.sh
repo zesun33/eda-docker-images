@@ -11,6 +11,19 @@ iverilog -V >/tmp/iverilog-version.txt 2>&1 || { echo "FAIL: iverilog not found"
 sed -n '1p' /tmp/iverilog-version.txt
 verilator --version >/tmp/verilator-version.txt 2>&1 || { echo "FAIL: verilator not found"; exit 1; }
 sed -n '1p' /tmp/verilator-version.txt
+python3 - <<'PY'
+import re, sys
+text = open("/tmp/verilator-version.txt").read()
+m = re.search(r"Verilator\s+(\d+)\.(\d+)", text)
+if not m:
+    print("FAIL: could not parse verilator version:", text)
+    sys.exit(1)
+maj, minor = int(m.group(1)), int(m.group(2))
+if (maj, minor) < (5, 36):
+    print(f"FAIL: Verilator {maj}.{minor} < 5.036 (cocotb 2.x floor)")
+    sys.exit(1)
+print(f"verilator {maj}.{minor}: OK (>= 5.036)")
+PY
 echo "iverilog + verilator: OK"
 
 # Verify cocotb and libpython shared library resolution
