@@ -31,6 +31,22 @@ command -v openroad >/dev/null || { echo "FAIL: openroad not found"; exit 1; }
 openroad -version 2>&1 | head -1 || true
 echo "openroad: OK"
 
+# Signoff tools (Phase 1): KLayout / Magic / Netgen / SymbiYosys / volare
+klayout -v 2>&1 | head -1 || { echo "FAIL: klayout not found"; exit 1; }
+echo "klayout: OK"
+
+magic -dnull -noconsole /dev/null 2>&1 | head -2 || { echo "FAIL: magic not found"; exit 1; }
+echo "magic: OK"
+
+(/usr/lib/netgen/bin/netgen -batch 2>&1 | grep -q "Netgen 1.5") || { echo "FAIL: netgen not found"; exit 1; }
+echo "netgen: OK (headless -batch; Tk wrapper netgen-lvs needs DISPLAY, expected headless)"
+
+sby --help 2>&1 | head -1 || { echo "FAIL: sby not found"; exit 1; }
+echo "symbiyosys: OK"
+
+volare --help 2>&1 | head -1 || { echo "FAIL: volare not found"; exit 1; }
+echo "volare: OK (PDKs downloaded on first run, not baked)"
+
 "$PYTHON" -c "import cocotb; print('cocotb', cocotb.__version__)" || { echo "FAIL: cocotb import"; exit 1; }
 echo "cocotb: OK"
 

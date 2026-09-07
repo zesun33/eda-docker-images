@@ -4,7 +4,23 @@ Container images for hardware development — Verilog simulation, SPICE circuit 
 
 The repo supports either `docker` or `podman`. If Docker is unavailable, the local verification flow automatically falls back to `podman`.
 
-**Status:** Images build and smoke-test locally. Source will be on GitHub; **Docker Hub publish is pending** (do not assume `docker pull zesun33/...` works yet).
+**Status:** Images build and smoke-test locally and publish to **GitHub Container Registry** (`ghcr.io/zesun33/...`).
+
+## Publishing to GHCR
+
+```bash
+# One-time: PAT with write:packages at github.com/settings/tokens
+podman login ghcr.io -u zesun33
+# Publish all four images (verilog ~0.9GB, spice ~0.2GB, fpga ~3.5GB, asic ~2.4GB)
+make push-ghcr
+# Pull anywhere (public packages need no login):
+podman pull ghcr.io/zesun33/verilog:latest
+```
+
+Fresh packages push as **private**; flip each to public under
+`github.com/users/zesun33/packages` so pulls and devcontainers work
+anonymously. Devcontainers default to local builds (`BASE=localhost/...`);
+point them at GHCR with `--build-arg BASE=ghcr.io/zesun33/verilog`.
 
 | Image | Base | Tools (measured locally) | Build | Smoke |
 |---|---|---|---|---|

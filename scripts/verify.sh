@@ -1,9 +1,22 @@
 #!/usr/bin/env bash
-# verify.sh — run smoke tests for all images
+# verify.sh — run smoke tests for images
+# Usage: ./scripts/verify.sh [--quick] [verilog|spice|fpga|asic]
+#   --quick skips rebuilds, smokes existing local images only (fast, Podman rootless safe)
+#   single name limits to that image (default: all 4)
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT_DIR"
+
+QUICK=0
+ONLY=""
+for arg in "$@"; do
+  case "$arg" in
+    --quick) QUICK=1 ;;
+    verilog|spice|fpga|asic) ONLY="$arg" ;;
+    *) echo "Unknown arg: $arg (usage: verify.sh [--quick] [verilog|spice|fpga|asic])" >&2; exit 2 ;;
+  esac
+done
 
 detect_runtime() {
     if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
@@ -36,22 +49,29 @@ run_smoke() {
     local build_args
     build_args="$(runtime_build_args "$runtime")"
 
-    color "Building $name with $runtime..."
-    # shellcheck disable=SC2086
-    "$runtime" build $build_args -t "zesun33/$name" -f "docker/$name/Dockerfile" . || fail "build $name"
+    if [ "$QUICK" = "1" ]; then
+        color "Quick smoke for $name in existing image (no rebuild)..."
+        "$runtime" run --rm -v "$ROOT_DIR:/repo:Z" -w /repo "zesun33/$name" bash "scripts/smoke-$name.sh" || fail "smoke $name"
+    else
+        color "Building $name with $runtime..."
+        # shellcheck disable=SC2086
+        "$runtime" build $build_args -t "zesun33/$name" -f "docker/$name/Dockerfile" . || fail "build $name"
 
-    color "Running smoke for $name in $runtime..."
-    "$runtime" run --rm -v "$ROOT_DIR:/repo:Z" -w /repo "zesun33/$name" bash "scripts/smoke-$name.sh" || fail "smoke $name"
+        color "Running smoke for $name in $runtime..."
+        "$runtime" run --rm -v "$ROOT_DIR:/repo:Z" -w /repo "zesun33/$name" bash "scripts/smoke-$name.sh" || fail "smoke $name"
+    fi
 
     ok "$name verified"
 }
 
 if runtime="$(detect_runtime)"; then
-    color "Using container runtime: $runtime"
-    run_smoke "$runtime" "verilog"
-    run_smoke "$runtime" "spice"
-    run_smoke "$runtime" "fpga"
-    run_smoke "$runtime" "asic"
+    color "Using container runtime: $runtime (quick=$QUICK, only=${ONLY:-all})"
+    for name in verilog spice fpga asic; do
+        if [ -n "$ONLY" ] && [ "$ONLY" != "$name" ]; then
+            continue
+        fi
+        run_smoke "$runtime" "$name"
+    done
 else
     color "No container runtime available. Checking scripts locally..."
     for name in verilog spice fpga asic; do

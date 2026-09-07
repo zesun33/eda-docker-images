@@ -13,10 +13,11 @@ COPY docker/verilog/versions.env /opt/versions.env
 # sandbox user because no subordinate UID/GID ranges are configured.
 RUN echo 'APT::Sandbox::User "root";' > /etc/apt/apt.conf.d/99rootless-no-sandbox
 
-# Install system packages
+# Install system packages (build-essential for Verilator --binary/coverage C++ builds)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     iverilog \
     verilator \
+    build-essential \
     make \
     python3 \
     libpython3.12 \
@@ -54,6 +55,7 @@ RUN curl -sL https://github.com/dalance/svlint/releases/download/v0.9.5/svlint-v
 # Smoke test: verify installed tools
 RUN iverilog -V && \
     verilator --version && \
+    g++ --version && \
     python3 --version && \
     node --version && \
     make --version && \

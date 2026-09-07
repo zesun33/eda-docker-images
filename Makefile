@@ -3,7 +3,7 @@ CONTAINER_RUNTIME ?= $(shell if command -v docker >/dev/null 2>&1; then echo doc
 CONTAINER_BUILD_ARGS ?= $(shell if [ "$(CONTAINER_RUNTIME)" = "podman" ]; then echo --storage-opt overlay.ignore_chown_errors=true; fi)
 
 .PHONY: all build-verilog build-spice build-fpga build-asic \
-        smoke-verilog smoke-spice smoke-fpga smoke-asic verify clean
+        smoke-verilog smoke-spice smoke-fpga smoke-asic verify verify-quick verify-asic-quick clean
 
 all: build-verilog build-spice build-fpga build-asic
 
@@ -33,6 +33,28 @@ smoke-asic:
 
 verify:
 	bash scripts/verify.sh
+
+verify-quick:
+	bash scripts/verify.sh --quick
+
+verify-asic-quick:
+	bash scripts/verify.sh --quick asic
+
+# Publish to Docker Hub (requires `podman login docker.io` with maintainer
+# credentials; blocked in CI/shared hosts without them).
+push:
+	for img in verilog spice fpga asic; do \
+		podman tag localhost/zesun33/$$img docker.io/zesun33/$$img:latest; \
+		podman push docker.io/zesun33/$$img:latest; \
+	done
+
+# Publish to GitHub Container Registry (requires `podman login ghcr.io`
+# with a PAT holding write:packages; see README "Publishing to GHCR").
+push-ghcr:
+	for img in verilog spice fpga asic; do \
+		podman tag localhost/zesun33/$$img ghcr.io/zesun33/$$img:latest; \
+		podman push ghcr.io/zesun33/$$img:latest; \
+	done
 
 clean:
 	$(CONTAINER_RUNTIME) rmi zesun33/verilog zesun33/spice zesun33/fpga zesun33/asic 2>/dev/null || true

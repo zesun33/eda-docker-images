@@ -100,6 +100,9 @@ RUN curl -sL https://github.com/conda-forge/miniforge/releases/latest/download/M
         ln -sf /opt/conda/envs/sta-env/bin/$bin /opt/conda/bin/$bin 2>/dev/null; \
     done && \
     ln -sf /opt/conda/envs/ecp5-env/bin/nextpnr-ecp5 /opt/conda/bin/nextpnr-ecp5 && \
+    for bin in ecppack ecpunpack ecpbram; do \
+        ln -sf /opt/conda/envs/ecp5-env/bin/$bin /opt/conda/bin/$bin 2>/dev/null; \
+    done && \
     /opt/conda/bin/conda clean -afy
 
 # Install sv2v and svlint (not on conda)
@@ -124,7 +127,7 @@ RUN printf '#!/bin/sh\nexec /usr/bin/python3 "$@"\n' > /usr/local/bin/python3 &&
 
 ENV PATH="/usr/local/bin:/opt/conda/bin:$PATH"
 
-RUN yosys -V && sta -version && nextpnr-ecp5 --version && openroad -version && \
+RUN yosys -V && sta -version && nextpnr-ecp5 --version && ecppack --help 2>&1 | head -1 && openroad -version && \
     verible-verilog-lint --version && sv2v --version && svlint --version && \
     python3 -c "import cocotb; print(cocotb.__version__)"
 
