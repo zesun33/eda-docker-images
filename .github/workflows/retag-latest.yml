@@ -1,0 +1,42 @@
+# Point :latest at an already-published tag without rebuilding.
+#
+#   gh workflow run retag-latest.yml -f source=v0.2.0
+
+name: retag-latest
+
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: "Existing tag to alias as latest (e.g. v0.2.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  retag:
+    name: latest <- ${{ inputs.source }} (${{ matrix.image }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [verilog, spice, fpga, asic]
+    steps:
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Copy tag to latest
+        run: |
+          docker buildx imagetools create \
+            -t "ghcr.io/zesun33/${{ matrix.image }}:latest" \
+            "ghcr.io/zesun33/${{ matrix.image }}:${{ inputs.source }}"
