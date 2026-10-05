@@ -1,5 +1,26 @@
 # eda-docker-images
 
+<!-- BEGIN GENERATED PROJECT GUIDE -->
+
+## Purpose and first steps
+
+Run open-source hardware tools in shared Docker or Podman images.
+
+**Who it is for:** Hardware developers who need consistent EDA tools locally or in CI.
+
+**First task:** Pull the Verilog image and run the counter fixture using the Quickstart.
+
+**What to expect:** A containerized simulator and tool-version output; image downloads and builds may be substantial.
+
+**Current scope:** Four EDA image definitions and smoke fixtures. Tool availability depends on the selected image and tag.
+
+**Start here:** [Image Quickstart](README.md#quickstart).
+
+**Related projects:** [eda-devcontainer](https://github.com/zesun33/eda-devcontainer), [gh-actions-for-hw](https://github.com/zesun33/gh-actions-for-hw), [mcp-verilog](https://github.com/zesun33/mcp-verilog).
+
+[Choose another project](https://github.com/zesun33/personal-projects/blob/main/GETTING_STARTED.md).
+<!-- END GENERATED PROJECT GUIDE -->
+
 Container images for hardware development — Verilog simulation, SPICE circuit analysis, FPGA synthesis, and ASIC physical design. Each image is a self-contained environment with pinned tool versions, ready for local dev, CI, and MCP servers.
 
 The repo supports either `docker` or `podman`. If Docker is unavailable, the local verification flow automatically falls back to `podman`.
